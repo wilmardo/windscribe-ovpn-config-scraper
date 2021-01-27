@@ -187,6 +187,19 @@ locations = {
     "317:Zurich - Lindenhof"
 }
 
+# https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/#retry-on-failure
+retry_strategy = requests.packages.urllib3.util.retry.Retry(
+    total=10,
+    status_forcelist=[403],
+    method_whitelist=["POST"],
+    backoff_factor=2
+)
+
+adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
+http.mount("https://", adapter)
+http.mount("http://", adapter)
+
 headers = {
     'authority': 'nld.windscribe.com',
     'cache-control': 'max-age=0',
@@ -198,22 +211,23 @@ headers = {
     'referer': 'https://nld.windscribe.com/getconfig/openvpn',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'en-US,en;q=0.9',
-    'cookie': sys.argv[1]
+    # 'cookie': sys.argv[1]
+    'cookie': '__cfduid=de388d21beede6620264e5113034de48e1611743688; _pk_id.3.2e1e=53e277ce5ae28164.1611743690.1.1611743846.1611743690.; _pk_ref.3.2e1e=%5B%22%22%2C%22%22%2C1611743690%2C%22https%3A%2F%2Fwww.startpage.com%2F%22%5D; _pk_ses.3.2e1e=*; ref=https%3A%2F%2Fwww.startpage.com%2F; i_can_has_cookie=1; ws_session_auth_hash=16816824%3A1%3A1611743694%3Acab4fb98de7f0f7aafd2dd756193592276a3ff410d%3A97c24f8b6500f241d5ad62ea141411ad8521ab481b'
 }
 
 for location in locations:
-        for proto in ["tcp", "udp"]:
-                data = {
-                  'location': location,
-                  'protocol': proto,
-                  'port': '1194',
-                  'cipher': 'cbc'  # or gcm
-                }
+    for protocol in ["tcp", "udp"]:
+            data = {
+                'location': location,
+                'protocol': protocol,
+                'port': '1194',
+                'cipher': 'cbc'  # or gcm
+            }
+            readable_location = re.sub(r'^[0-9]*:', '', location).replace(" ", "")  # remove leading number and spaces
 
-                filename = "exports/{name}-{protocol}.ovpn".format(
-                        name=re.sub(r'^[0-9]*:', '', location).replace(" ", ""),  # remove leading number and spaces
-                        protocol=proto
-                )
-                response = requests.post('https://nld.windscribe.com/getconfig/openvpn', headers=headers, data=data)
-                f = open(filename, "w")
-                f.write(response.text)
+            response = http.post('https://nld.windscribe.com/getconfig/openvpn', headers=headers, data=data)
+
+            filename = f"exports/{readable_location}-{protocol}.ovpn"
+            f = open(filename, "w")
+            f.write(response.text)
+            print(f"Grabbed {readable_location}-{protocol}")
