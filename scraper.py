@@ -1,185 +1,9 @@
 #!/usr/bin/python
 
-import requests
 import sys
 import re
-
-# inspect source and copy values for example:
-# <option value="354:Adelaide  - Lofty" data-type="standard">Adelaide - Lofty</option>
-locations = {
-    "354:Adelaide  - Lofty",
-    "319:Adelaide - Oval",
-    "229:Amsterdam - Bicycle",
-    "120:Amsterdam - Canal",
-    "289:Amsterdam - Red Light",
-    "193:Amsterdam - Tulip",
-    "218:Ashdod - Yam Park",
-    "312:Athens - Agora",
-    "247:Athens - Odeon",
-    "246:Athens - Parthenon",
-    "109:Atlanta - Mountain",
-    "331:Atlanta - Piedmont",
-    "352:Auckland  - Hauraki",
-    "251:Auckland - Parnell",
-    "127:Baku City - Caspian",
-    "361:Bangkok - Hangover",
-    "239:Barcelona - Batllo",
-    "288:Belgrade - Rakia",
-    "302:Bend - Oregon Trail",
-    "360:Bogota - Rololandia",
-    "240:Bogota - White Coffee",
-    "298:Boston - MIT",
-    "213:Bratislava - Devin Castle",
-    "225:Brisbane - Bad Koala",
-    "357:Brisbane - Good Koala",
-    "99:Brussels - Guildhouse",
-    "105:Bucharest - No Vampires",
-    "90:Budapest - Danube",
-    "278:Buenos Aires - Tango",
-    "281:Buffalo - Bill",
-    "236:Bursa - Teleferik",
-    "353:Canberra - Burley",
-    "303:Charlotte - Earnhardt",
-    "271:Chennai - Adyar",
-    "63:Chicago - Cub",
-    "130:Chicago - The L",
-    "323:Chicago - Wrigley",
-    "210:Chisinau - Dendrarium",
-    "146:Cleveland - Brown",
-    "153:Copenhagen - LEGO",
-    "328:Dallas - Ammo",
-    "192:Dallas - BBQ",
-    "86:Dallas - Ranch",
-    "145:Denver - Barley",
-    "301:Denver - Hops",
-    "304:Dubai - Khalifa",
-    "370:Dublin - Dullahan",
-    "73:Dublin - Guinness",
-    "369:Edinburgh - Keeper Willie",
-    "113:Frankfurt - Castle",
-    "228:Frankfurt - Wiener",
-    "205:Guadalajara - Cabanas",
-    "340:Halifax - Howe",
-    "122:Hanoi - Red River",
-    "98:Helsinki - Sauna",
-    "186:Helsinki - Tram",
-    "189:Hong Kong - Phooey",
-    "26:Hong Kong - Victoria",
-    "279:Istanbul - Ataturk",
-    "250:Istanbul - Galata",
-    "350:Istanbul - Ottoman",
-    "253:Jakarta - Menteng",
-    "119:Jerusalem - Zion",
-    "164:Johannesburg - District",
-    "216:Johannesburg - Ellis Park",
-    "232:Johannesburg - Lindfield",
-    "371:Kansas City - Glinda",
-    "270:Kuala Lumpur - Perdana",
-    "383:Kyiv - Chicken",
-    "183:Las Vegas - Casino",
-    "367:Lima - Amaru",
-    "249:Lisbon - Bairro",
-    "335:London - Biscuits",
-    "171:London - Crumpets",
-    "341:London - Custard",
-    "321:Los Angeles - Cube",
-    "107:Los Angeles - Dogg",
-    "327:Los Angeles - Eazy",
-    "310:Los Angeles - Lamar",
-    "180:Los Angeles - Pac",
-    "115:Madrid - Prado",
-    "126:Manchester - United",
-    "365:Manila - Pasig",
-    "356:Melbourne  - Port Phillip",
-    "224:Melbourne  - Yarra",
-    "351:Mexico City - Cojones",
-    "326:Miami - Florida Man",
-    "206:Miami - Snow",
-    "140:Miami - Vice",
-    "318:Milan - Duomo",
-    "110:Milan - Galleria",
-    "316:Montreal - Bagel Poutine",
-    "359:Montreal - Expo 67",
-    "74:Montreal - Old Port",
-    "346:Moscow - Sleepy Lenin",
-    "372:Mumbai - Mahim",
-    "181:New Jersey - Situation",
-    "106:New York - Empire",
-    "322:New York - Gotham",
-    "384:New York - Grand Central",
-    "330:New York - Insomnia",
-    "320:Nicosia - Blue Lagoon",
-    "336:Orlando - Tofu Driver",
-    "169:Oslo - Fjord",
-    "358:Panama City - Papers",
-    "342:Paris - Jardin",
-    "103:Paris - Seine",
-    "355:Perth - Herdsman",
-    "223:Perth - Kings Park",
-    "196:Philadelphia - Cheese",
-    "348:Philadelphia - Fresh Prince",
-    "374:Phnom Penh - Botum Pagoda",
-    "325:Phoenix - Floatie",
-    "338:Prague  - Vltava",
-    "88:Prague - Staromak",
-    "214:Pune - Mutha",
-    "121:Reykjavik - Fuzzy Pony",
-    "344:Reykjavik - Reyka",
-    "254:Riga - Daugava",
-    "364:Riga - Vecriga",
-    "238:Rome - Colosseum",
-    "265:Saint Petersburg - Hermitage",
-    "211:Saint Petersburg - Shnur",
-    "262:San Antonio - Zambales",
-    "329:San Francisco - Sanitation",
-    "337:San Jose - Santana",
-    "333:Santa Clara - Inside",
-    "373:Santiago - Cueca",
-    "231:Sao Paulo - Mercadao",
-    "165:Sao Paulo - Pinacoteca",
-    "286:Sarajevo - Burek",
-    "290:Seattle - Cobain",
-    "221:Seattle - Cornell",
-    "182:Seattle - Hendrix",
-    "267:Seoul - Bukhansan",
-    "362:Seoul - Hangang",
-    "57:Seoul - Metro",
-    "380:Siauliai - Talksa",
-    "170:Singapore - Garden",
-    "235:Singapore - Marina Bay",
-    "241:Singapore - SMRT",
-    "339:Skopje - Vardar",
-    "100:Sofia - Nevski",
-    "234:Stockholm - Djurgarden",
-    "159:Stockholm - Ikea",
-    "30:Stockholm - Syndrome",
-    "226:Sydney - Opera House",
-    "243:Sydney - Squidney",
-    "314:Taipei - Datong",
-    "299:Tallinn - Lennujaam",
-    "349:Tampa - Cuban Sandwich",
-    "283:Tirana - Besa",
-    "287:Tokyo - Bosozoku",
-    "148:Tokyo - Drift",
-    "197:Toronto - Comfort Zone",
-    "72:Toronto - The 6",
-    "332:Troll - Station",
-    "260:Tunis - Medina",
-    "187:Vancouver - Granville",
-    "124:Vancouver - Stanley",
-    "311:Vancouver - Vansterdam",
-    "308:Vienna - Boltzmann",
-    "87:Vienna - Hofburg",
-    "378:Vilnius - Neris",
-    "85:Warsaw - Chopin",
-    "237:Warsaw - Curie",
-    "309:Warsaw - Vistula",
-    "324:Washington DC - Precedent",
-    "252:Zagreb - Tkalciceva",
-    "112:Zurich - Alphorn",
-    "264:Zurich - Altstadt",
-    "317:Zurich - Lindenhof"
-}
+import requests
+from bs4 import BeautifulSoup
 
 # https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/#retry-on-failure
 retry_strategy = requests.packages.urllib3.util.retry.Retry(
@@ -205,23 +29,25 @@ headers = {
     'referer': 'https://nld.windscribe.com/getconfig/openvpn',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'en-US,en;q=0.9',
-    # 'cookie': sys.argv[1]
-    'cookie': '__cfduid=de388d21beede6620264e5113034de48e1611743688; _pk_id.3.2e1e=53e277ce5ae28164.1611743690.1.1611743846.1611743690.; _pk_ref.3.2e1e=%5B%22%22%2C%22%22%2C1611743690%2C%22https%3A%2F%2Fwww.startpage.com%2F%22%5D; _pk_ses.3.2e1e=*; ref=https%3A%2F%2Fwww.startpage.com%2F; i_can_has_cookie=1; ws_session_auth_hash=16816824%3A1%3A1611743694%3Acab4fb98de7f0f7aafd2dd756193592276a3ff410d%3A97c24f8b6500f241d5ad62ea141411ad8521ab481b'
+    'cookie': sys.argv[1]
 }
 
-for location in locations:
+# Parse optgroup containing the locations
+content = http.get('https://windscribe.com/getconfig/openvpn', headers=headers)
+soup = BeautifulSoup(content.text, 'html.parser')
+optgroup = soup.optgroup
+
+for location in optgroup.find_all('option'):
     for protocol in ["tcp", "udp"]:
             data = {
-                'location': location,
+                'location': location.attrs['value'],
                 'protocol': protocol,
                 'port': '1194',
-                'cipher': 'cbc'  # or gcm
+                'version' : '3b'  # openvpn 2.4.6 or newer
             }
-            readable_location = re.sub(r'^[0-9]*:', '', location).replace(" ", "")  # remove leading number and spaces
+            response = http.post('https://windscribe.com/getconfig/openvpn', headers=headers, data=data)
 
-            response = http.post('https://nld.windscribe.com/getconfig/openvpn', headers=headers, data=data)
-
-            filename = f"exports/{readable_location}-{protocol}.ovpn"
+            filename = f"exports/{location.string.replace(' ', '')}-{protocol}.ovpn"
             f = open(filename, "w")
             f.write(response.text)
-            print(f"Grabbed {readable_location}-{protocol}")
+            print(f"Grabbed {filename}")

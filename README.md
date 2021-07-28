@@ -2,14 +2,6 @@
 Super easy and hacky openvpn config scraper for Windscribe.
 Needs python >3.6!
 
-## Updating
-
-* Login on the Windscribe website with Chrome
-* Go to https://windscribe.com/getconfig/openvpn
-* Right click and choose 'View page source'
-* Copy standard locations around line 202
-* Paste them in the script at line 10 and adapt them with a multiline cursor edit
-
 ## Usage
 
 * Login on the Windscribe website with Chrome
