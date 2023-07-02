@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 retry_strategy = requests.packages.urllib3.util.retry.Retry(
     total=10,
     status_forcelist=[403],
-    method_whitelist=["POST"],
+    allowed_methods=["POST"],
     backoff_factor=2
 )
 
