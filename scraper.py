@@ -27,15 +27,16 @@ headers = {
     'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
     'referer': 'https://nld.windscribe.com/getconfig/openvpn',
-    'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'en-US,en;q=0.9',
     'cookie': sys.argv[1]
 }
 
 # Parse optgroup containing the locations
 content = http.get('https://windscribe.com/getconfig/openvpn', headers=headers)
+# with open('output.html', 'w', encoding='utf-8') as file:
+#         file.write(content.text)
 soup = BeautifulSoup(content.text, 'html.parser')
-optgroup = soup.optgroup
+optgroup = soup.find('optgroup', attrs={'label': 'Standard Locations'})
 
 for location in optgroup.find_all('option'):
     for protocol in ["tcp", "udp"]:
